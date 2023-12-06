@@ -6,36 +6,54 @@ import (
 	"os"
 	"strings"
 	"strconv"
+	"sort"
 ) 
 
 type mapValue struct {
-	dst int
+	src int
 	mapRange int
 }
 
 
-func getMappedValue(srcValue int, valueMap map[int]mapValue) int {
-	for mapSrc, value := range valueMap {
-		if mapSrc > srcValue {
+func getMappedValue(dstValue int, valueMap map[int]mapValue) int {
+	for mapDst, value := range valueMap {
+		if dstValue < mapDst {
 			continue
-		} else if mapSrc + value.mapRange < srcValue {
+		} else if mapDst + value.mapRange < dstValue {
 			continue
 		} else {
-			return value.dst + (srcValue - mapSrc)
+			return (dstValue - mapDst) + value.src
 		}
 	}
-	return srcValue
+	return dstValue
 
 }
 
-func min(slice []int) int {
-	var m int
-	for i,e := range slice {
-		if i==0 || e < m {
-			m = e
+func min(valueMap map[int]mapValue, k int) int {
+	keys := make([]int, len(valueMap))
+
+	i := 0
+	for k:= range valueMap {
+		keys[i] = k
+		i++
+	}
+	sort.Ints(keys)
+	return keys[k]
+	
+
+}
+
+func isValidSeed(seed int, seeds []int) bool {
+	for i:= 0; i < len(seeds); i++ {
+		if i % 2 == 1 {
+			if seed >= seeds[i-1] && seed <= seeds[i-1]+seeds[i]-1 {
+				return true
+			}
+
 		}
 	}
-	return m
+	return false 
+	
 }
 
 func main() {
@@ -84,21 +102,37 @@ func main() {
 			dst, _ := strconv.Atoi(inputs[0])
 			src, _ := strconv.Atoi(inputs[1])
 			mapRange, _ := strconv.Atoi(inputs[2])
-			currentMap[src] = mapValue{dst, mapRange}
+			currentMap[dst] = mapValue{src, mapRange}
 		}
 	
 	}
 	
-	var locations []int
-	for _, seed := range seeds {
-		soil := getMappedValue(seed, seedToSoil)
-		fertilizer := getMappedValue(soil, soilToFertilizer)
-		water := getMappedValue(fertilizer, fertilizerToWater)
-		light := getMappedValue(water, waterToLight)
-		temperature := getMappedValue(light, lightToTemperature)
-		humidity := getMappedValue(temperature, temperatureToHumidity)
-		location := getMappedValue(humidity, humidityToLocation)
-		locations = append(locations, location)
+	var soil int
+	var fertilizer int
+	var water int
+	var light int
+	var temperature int
+	var humidity int
+	var seed int
+	location := 1
+	for true {
+		humidity = getMappedValue(location, humidityToLocation)
+		temperature = getMappedValue(humidity, temperatureToHumidity)
+		light = getMappedValue(temperature, lightToTemperature)
+		water = getMappedValue(light, waterToLight)
+		fertilizer = getMappedValue(water, fertilizerToWater)
+		soil = getMappedValue(fertilizer, soilToFertilizer)
+		seed = getMappedValue(soil, seedToSoil)
+		if location % 1000000 == 0 {
+			fmt.Println(location)
+		}
+		if isValidSeed(seed, seeds) {
+			fmt.Println(location)
+			break
+			}
+		
+		location++
 	}
-	fmt.Println(min(locations))
+
+	
 }
