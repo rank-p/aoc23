@@ -1,5 +1,4 @@
 package main
-
 import (
 	"fmt"
 	 "bufio"
@@ -42,9 +41,13 @@ func compareHandsByRune(h1 string, h2 string) bool {
 }
 
 func compareHands(h1 string, h2 string) bool {
-	if rankHand(h1) > rankHand(h2) {
+	h1_1 := strings.Replace(h1, "J", mostCommonChar(h1), -1)
+	h2_1 := strings.Replace(h2, "J", mostCommonChar(h2), -1)
+	h1_1 = strings.Replace(h1_1, "'", "", -1)
+	h2_1 = strings.Replace(h2_1, "'", "", -1)
+	if rankHand(h1_1) > rankHand(h2_1) {
 		return true
-	} else if rankHand(h2) > rankHand(h1) {
+	} else if rankHand(h2_1) > rankHand(h1_1) {
 		return false
 	} else {
 		return compareHandsByRune(h1, h2)
@@ -55,6 +58,7 @@ func compareHands(h1 string, h2 string) bool {
 func hasCharWithCount(s string, count int) bool {
 	charCount := make(map[rune]int)
 	for _, char := range s {
+		if char == 39 {continue}
 		charCount[char]++
 	}
 	
@@ -69,9 +73,11 @@ func hasCharWithCount(s string, count int) bool {
 func hasDoublePair(s string) bool {
 	charCount := make(map[rune]int)
 	for _, char := range s {
+		if char == 39 {continue}
 		charCount[char]++
 	}
 	countPair := 0
+	fmt.Println(s, charCount)
 	for _, c := range charCount {
 		if c == 2 {
 			countPair++
@@ -98,8 +104,29 @@ func rankHand(hand string) int {
 	}
 }
 
+func mostCommonChar(s string) string {
+	charCount := make(map[rune]int)
+	for _, char := range s {
+		charCount[char]++
+	}
+	var mostCommonChar rune
+	maxCount := 0
+	for char, count := range charCount {
+		if char == 'J' {
+			continue
+		}
+		if count > maxCount {
+			mostCommonChar = char
+			maxCount = count
+		}
+	}
+
+	return strconv.QuoteRune(mostCommonChar)
+
+}
+
 func main() {
-	file, _ := os.Open("aoc7.txt")
+	file, _ := os.Open("aoc7test.txt")
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -116,6 +143,7 @@ func main() {
 	})	
 	score := 0
 	for i := range arr {
+		fmt.Println(arr[i].hand, rankHand(strings.Replace(arr[i].hand, "J", mostCommonChar(arr[i].hand), -1)))
 		score += (i+1) * arr[i].bid
 	}
 	fmt.Println(arr)
